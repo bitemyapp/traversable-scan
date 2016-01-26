@@ -36,35 +36,35 @@ postscanl' f z bs = snd (mapAccumL go z bs) where
 
 scanl1 :: Traversable t => (a -> a -> a) -> t a -> t a
 scanl1 f as = snd (mapAccumL go Nothing as) where
-  go a b = let c = (maybe id f) a b in (c, c)
+  go a b = let c = (maybe id f) a b in (Just c, c)
 
 scanl1' :: Traversable t => (a -> a -> a) -> t a -> t a
 scanl1' f as = snd (mapAccumL go Nothing as) where
-  go a b = seq a (let c = (maybe id f) a b in (c, c))
+  go a b = (maybe id seq) a (let c = (maybe id f) a b in (Just c, c))
 
 prescanr :: Traversable t => (a -> b -> b) -> b -> t a -> t b
 prescanr f z bs = snd (mapAccumR go z bs) where
-  go a b = let c = f a b in (a, c)
+  go b a = let c = f a b in (c, b)
 
 prescanr' :: Traversable t => (a -> b -> b) -> b -> t a -> t b
 prescanr' f z bs = snd (mapAccumR go z bs) where
-  go a b = seq b (let c = f a b in (a, c))
+  go b a = seq b (let c = f a b in (c, b))
 
 postscanr :: Traversable t => (a -> b -> b) -> b -> t a -> t b
 postscanr f z bs = snd (mapAccumR go z bs) where
-  go a b = let c = f a b in (c, c)
+  go b a = let c = f a b in (c, c)
 
 postscanr' :: Traversable t => (a -> b -> b) -> b -> t a -> t b
-postscanr' f z bs = snd (mapAccumR go z bs) where
-  go a b = seq b (let c = f a b in (c, c))
+postscanr' f z as = snd (mapAccumR go z as) where
+  go b a = seq b (let c = f a b in (c, c))
 
 scanr1 :: Traversable t => (a -> a -> a) -> t a -> t a
 scanr1 f as = snd (mapAccumR go Nothing as) where
-  go a b = let c = (maybe id f) a b in (c, c)
+  go a b = let c = (maybe id f) a b in (Just c, c)
 
 scanr1' :: Traversable t => (a -> a -> a) -> t a -> t a
 scanr1' f as = snd (mapAccumR go Nothing as) where
-  go a b = seq b (let c = (maybe id f) a b in (c, c))
+  go a b = (maybe id seq) a (let c = (maybe id f) a b in (Just c, c))
 
 {-
 
@@ -79,10 +79,21 @@ about the structure of the Traversable.
 
 -}
 
+swap :: (a, b) -> (b, a)
+swap = uncurry (flip (,))
+
 scanl :: Traversable t => (a -> b -> a) -> a -> t b -> (t a, a)
+scanl f z bs = swap (mapAccumL go z bs) where
+  go a b = let c = f a b in (a, c)
 
 scanl' :: Traversable t => (a -> b -> a) -> a -> t b -> (t a, a)
+scanl' f z bs = swap (mapAccumL go z bs) where
+  go a b = seq a (let c = f a b in (a, c))
 
 scanr :: Traversable t => (a -> b -> b) -> b -> t a -> (b, t b)
+scanr f z as = mapAccumR go z as where
+  go b a = let c = f a b in (c, b)
 
 scanr' :: Traversable t => (a -> b -> b) -> b -> t a -> (b, t b)
+scanr' f z as = mapAccumR go z as where
+  go b a = seq b (let c = f a b in (c, b))
