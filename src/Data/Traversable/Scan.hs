@@ -24,11 +24,11 @@ the post-value.
 
 prescanl :: Traversable t => (a -> b -> a) -> a -> t b -> t a
 prescanl f = snd ... mapAccumL go where
-  go a b = let c = f a b in (a, c)
+  go a b = let c = f a b in (c, a)
 
 prescanl' :: Traversable t => (a -> b -> a) -> a -> t b -> t a
 prescanl' f = snd ... mapAccumL go where
-  go a b = seq a (let c = f a b in (a, c))
+  go a b = seq a (let c = f a b in (c, a))
 
 postscanl :: Traversable t => (a -> b -> a) -> a -> t b -> t a
 postscanl f = snd ... mapAccumL go where
@@ -89,11 +89,11 @@ swap = uncurry (flip (,))
 
 scanl :: Traversable t => (a -> b -> a) -> a -> t b -> (t a, a)
 scanl f = swap ... mapAccumL go where
-  go a b = let c = f a b in (a, c)
+  go a b = let c = f a b in (c, a)
 
 scanl' :: Traversable t => (a -> b -> a) -> a -> t b -> (t a, a)
 scanl' f = swap ... mapAccumL go where
-  go a b = seq a (let c = f a b in (a, c))
+  go a b = seq a (let c = f a b in (c, a))
 
 scanr :: Traversable t => (a -> b -> b) -> b -> t a -> (b, t b)
 scanr f = mapAccumR go where
