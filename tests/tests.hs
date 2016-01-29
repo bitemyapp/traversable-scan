@@ -3,7 +3,7 @@ module Main where
 import Data.Traversable.Scan as T
 import Data.Vector (Vector)
 import qualified Data.Vector as V
-import Linear (M22, V2(..), (!*!))
+import Linear (M22, V2(..), (!*!), (!-!))
 
 import Test.Tasty
 import Test.Tasty.QuickCheck
@@ -47,20 +47,25 @@ main = (defaultMain . testGroup "tests")
          (testScanR T.scanr' V.scanr')
        ]
 
+-- | The Lie bracket is the perfect matrix product to test scans:
+-- it's simple, but neither commutative nor associative!
+lie :: M22 Double -> M22 Double -> M22 Double
+lie a b = (a !*! b) !-! (b !*! a)
+
 type PrePostScan a = (a -> a -> a) -> a -> Vector a -> Vector a
 
 testPrePostScan :: PrePostScan (M22 Double) -> PrePostScan (M22 Double) -> Gen Property
 testPrePostScan f g = do
   xs <- V.fromList <$> listOf arbitraryM22
   z <- arbitraryM22
-  pure (f (!*!) z xs === g (!*!) z xs)
+  pure (f lie z xs === g lie z xs)
 
 type Scan1 a = (a -> a -> a) -> Vector a -> Vector a
 
 testScan1 :: Scan1 (M22 Double) -> Scan1 (M22 Double) -> Gen Property
 testScan1 f g = do
   xs <- V.fromList <$> listOf1 arbitraryM22
-  pure (f (!*!) xs === g (!*!) xs)
+  pure (f lie xs === g lie xs)
 
 type ScanL a = (a -> a -> a) -> a -> Vector a -> (Vector a, a)
 type ScanL_ a = (a -> a -> a) -> a -> Vector a -> Vector a
@@ -70,8 +75,8 @@ testScanL f g = do
   xs <- V.fromList <$> listOf arbitraryM22
   z <- arbitraryM22
   let
-    (ys, yf) = f (!*!) z xs
-    ys' = g (!*!) z xs
+    (ys, yf) = f lie z xs
+    ys' = g lie z xs
   pure ((ys === V.init ys') .&&. (yf === V.last ys'))
 
 type ScanR a = (a -> a -> a) -> a -> Vector a -> (a, Vector a)
@@ -82,8 +87,8 @@ testScanR f g = do
   xs <- V.fromList <$> listOf arbitraryM22
   z <- arbitraryM22
   let
-    (yi, ys) = f (!*!) z xs
-    ys' = g (!*!) z xs
+    (yi, ys) = f lie z xs
+    ys' = g lie z xs
   pure ((yi === V.head ys') .&&. (ys === V.tail ys'))
 
 arbitraryM22 :: Gen (M22 Double)
