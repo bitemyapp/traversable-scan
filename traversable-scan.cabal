@@ -32,3 +32,16 @@ test-suite tests
     , tasty >= 0.11
     , tasty-quickcheck >= 0.8
     , vector >= 0.5
+
+benchmark benchmarks
+  type: exitcode-stdio-1.0
+  main-is: benchmarks.hs
+  hs-source-dirs: benchmarks
+  default-language: Haskell2010
+  ghc-options: -Wall
+  build-depends:
+      base >=4.7 && <5
+    , traversable-scan
+    , criterion >= 1.0
+    , random >= 1.0
+    , vector >= 0.5
