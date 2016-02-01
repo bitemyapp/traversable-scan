@@ -62,7 +62,8 @@ instance Monad (StateL s) where
 -- passing an accumulating parameter from left to right, and returning
 -- a final value of this accumulator together with the new structure.
 mapAccumL :: Traversable t => (a -> b -> (a, c)) -> a -> t b -> (a, t c)
-mapAccumL f s t = runStateL (traverse (StateL . flip f) t) s
+{-# INLINE mapAccumL #-}
+mapAccumL f = \s t -> runStateL (traverse (\a -> StateL (\s' -> f s' a)) t) s
 
 -- * Prefix sums (scans)
 
@@ -85,27 +86,27 @@ the post-value.
 (...) f g = \c d -> f (g c d)
 
 prescanl :: Traversable t => (a -> b -> a) -> a -> t b -> t a
-prescanl f = snd ... mapAccumL go where
+prescanl f = \s t -> snd (mapAccumL go s t) where
   go a b = let c = f a b in (c, a)
 
 prescanl' :: Traversable t => (a -> b -> a) -> a -> t b -> t a
-prescanl' f = snd ... mapAccumL go where
+prescanl' f = \s t -> snd (mapAccumL go s t) where
   go a b = seq a (let c = f a b in (c, a))
 
 postscanl :: Traversable t => (a -> b -> a) -> a -> t b -> t a
-postscanl f = snd ... mapAccumL go where
+postscanl f = \s t -> snd (mapAccumL go s t) where
   go a b = let c = f a b in (c, c)
 
 postscanl' :: Traversable t => (a -> b -> a) -> a -> t b -> t a
-postscanl' f = snd ... mapAccumL go where
+postscanl' f = \s t -> snd (mapAccumL go s t) where
   go a b = seq a (let c = f a b in (c, c))
 
 scanl1 :: Traversable t => (a -> a -> a) -> t a -> t a
-scanl1 f = snd . mapAccumL go Nothing where
+scanl1 f = \t -> snd (mapAccumL go Nothing t) where
   go a b = let c = (maybe id f) a b in (Just c, c)
 
 scanl1' :: Traversable t => (a -> a -> a) -> t a -> t a
-scanl1' f = snd . mapAccumL go Nothing where
+scanl1' f = \t -> snd (mapAccumL go Nothing t) where
   go a b = (maybe id seq) a (let c = (maybe id f) a b in (Just c, c))
 
 prescanr :: Traversable t => (a -> b -> b) -> b -> t a -> t b
@@ -150,11 +151,11 @@ swap :: (a, b) -> (b, a)
 swap = uncurry (flip (,))
 
 scanl :: Traversable t => (a -> b -> a) -> a -> t b -> (t a, a)
-scanl f = swap ... mapAccumL go where
+scanl f = \s t -> swap (mapAccumL go s t) where
   go a b = let c = f a b in (c, a)
 
 scanl' :: Traversable t => (a -> b -> a) -> a -> t b -> (t a, a)
-scanl' f = swap ... mapAccumL go where
+scanl' f = \s t -> swap (mapAccumL go s t) where
   go a b = seq a (let c = f a b in (c, a))
 
 scanr :: Traversable t => (a -> b -> b) -> b -> t a -> (b, t b)
