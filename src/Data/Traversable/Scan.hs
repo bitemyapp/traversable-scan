@@ -35,7 +35,7 @@ instance Monad (StateL s) where
   {-# INLINE (>>=) #-}
   (>>=) ma kb =
     let
-      bind_StateL_inner s0 = do
+      bind_StateL_inner s0 =
         case runStateL ma s0 of
           (# s1, a #) -> runStateL (kb a) s1
     in
