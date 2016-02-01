@@ -13,16 +13,14 @@ main = do
   xs <- replicateM 1000000 randomIO :: IO [Int]
   let ys = V.fromList xs
   defaultMain
-    [ bgroup "prescanl"
-      [ bench "Traversable []" (nf (T.prescanl (+) 0) xs)
-      , bench "Traversable Vector" (nf (T.prescanl (+) 0) ys)
-      , bench "Vector" (nf (V.prescanl (+) 0) ys)
-      ]
-    , bgroup "prescanl'"
-      [ bench "Traversable []" (nf (T.prescanl' (+) 0) xs)
-      , bench "Traversable Vector" (nf (T.prescanl' (+) 0) ys)
-      , bench "Vector" (nf (V.prescanl' (+) 0) ys)
-      ]
+    [ bench "prescanl/Traversable/[]" (nf (T.prescanl (+) 0) xs)
+    , bench "prescanl/Traversable/Vector" (nf (T.prescanl (+) 0) ys)
+    , bench "prescanl/Vector" (nf (V.prescanl (+) 0) ys)
+
+    , bench "prescanl'/Traversable/[]" (nf (T.prescanl' (+) 0) xs)
+    , bench "prescanl'/Traversable/Vector" (nf (T.prescanl' (+) 0) ys)
+    , bench "prescanl'/Vector" (nf (V.prescanl' (+) 0) ys)
+
     , bgroup "postscanl"
       [ bench "Traversable []" (nf (T.postscanl (+) 0) xs)
       , bench "Traversable Vector" (nf (T.postscanl (+) 0) ys)
