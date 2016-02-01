@@ -11,47 +11,33 @@ newtype StateL s a = StateL { runStateL :: s -> (# s, a #) }
 instance Functor (StateL s) where
   {-# INLINE fmap #-}
   fmap f (StateL k) =
-    let
-      fmap_StateL_inner s0 =
-        case k s0 of (# s1, v #) -> (# s1, f v #)
-    in
-      StateL fmap_StateL_inner
+    StateL (\s0 -> case k s0 of (# s1, a #) -> (# s1, f a #))
 
 instance Applicative (StateL s) where
   {-# INLINE pure #-}
-  pure x =
-    let
-      pure_StateL_inner s = (# s, x #)
-    in
-      StateL pure_StateL_inner
+  pure x = StateL (\s -> (# s, x #))
 
   {-# INLINE (<*>) #-}
-  (<*>) (StateL kf) (StateL kv) =
+  (<*>) mf ma =
     let
       ap_StateL_inner s0 =
-        case kf s0 of
+        case runStateL mf s0 of
           (# s1, f #) ->
-            case kv s1 of
-              (# s2, v #) -> (# s2, f v #)
+            case runStateL ma s1 of
+              (# s2, a #) -> (# s2, f a #)
     in
       StateL ap_StateL_inner
 
 instance Monad (StateL s) where
   {-# INLINE return #-}
-  return x =
-    let
-      return_StateL_inner s = (# s, x #)
-    in
-      StateL return_StateL_inner
+  return x = StateL (\s -> (# s, x #))
 
   {-# INLINE (>>=) #-}
-  (>>=) (StateL ka) fkb =
+  (>>=) ma kb =
     let
-      bind_StateL_inner s0 =
-        case ka s0 of
-          (# s1, a #) ->
-            case fkb a of
-              StateL kb -> kb s1
+      bind_StateL_inner s0 = do
+        case runStateL ma s0 of
+          (# s1, a #) -> runStateL (kb a) s1
     in
       StateL bind_StateL_inner
 
