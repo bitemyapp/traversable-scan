@@ -7,14 +7,55 @@ import Data.Traversable ( mapAccumR )
 newtype StateL s a = StateL { runStateL :: s -> (s, a) }
 
 instance Functor (StateL s) where
-    fmap f (StateL k) = StateL $ \ s -> let (s', v) = k s in (s', f v)
+  {-# INLINE fmap #-}
+  fmap f (StateL k) =
+    let
+      fmap_StateL_inner s0 =
+        let
+          (s1, v) = k s0
+        in
+          (s1, f v)
+    in
+      StateL fmap_StateL_inner
 
 instance Applicative (StateL s) where
-    pure x = StateL (\ s -> (s, x))
-    StateL kf <*> StateL kv = StateL $ \ s ->
-        let (s', f) = kf s
-            (s'', v) = kv s'
-        in (s'', f v)
+  {-# INLINE pure #-}
+  pure x =
+    let
+      pure_StateL_inner s = (s, x)
+    in
+      StateL pure_StateL_inner
+
+  {-# INLINE (<*>) #-}
+  (<*>) (StateL kf) (StateL kv) =
+    let
+      ap_StateL_inner s0 =
+        let
+          (s1, f) = kf s0
+          (s2, v) = kv s1
+        in
+          (s2, f v)
+    in
+      StateL ap_StateL_inner
+
+instance Monad (StateL s) where
+  {-# INLINE return #-}
+  return x =
+    let
+      return_StateL_inner s = (s, x)
+    in
+      StateL return_StateL_inner
+
+  {-# INLINE (>>=) #-}
+  (>>=) (StateL ka) fkb =
+    let
+      bind_StateL_inner s0 =
+        let
+          (s1, a) = ka s0
+        in
+          runStateL (fkb a) s1
+    in
+      StateL bind_StateL_inner
 
 -- |The 'mapAccumL' function behaves like a combination of 'fmap'
 -- and 'foldl'; it applies a function to each element of a structure,
