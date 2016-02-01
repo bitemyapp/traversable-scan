@@ -91,7 +91,7 @@ prescanl f = \s t -> snd (mapAccumL go s t) where
 
 prescanl' :: Traversable t => (a -> b -> a) -> a -> t b -> t a
 prescanl' f = \s t -> snd (mapAccumL go s t) where
-  go a b = seq a (let c = f a b in (c, a))
+  go a b = let c = f a b in seq c (c, a)
 
 postscanl :: Traversable t => (a -> b -> a) -> a -> t b -> t a
 postscanl f = \s t -> snd (mapAccumL go s t) where
@@ -99,7 +99,7 @@ postscanl f = \s t -> snd (mapAccumL go s t) where
 
 postscanl' :: Traversable t => (a -> b -> a) -> a -> t b -> t a
 postscanl' f = \s t -> snd (mapAccumL go s t) where
-  go a b = seq a (let c = f a b in (c, c))
+  go a b = let c = f a b in seq c (c, c)
 
 scanl1 :: Traversable t => (a -> a -> a) -> t a -> t a
 scanl1 f = \t -> snd (mapAccumL go Nothing t) where
@@ -107,7 +107,7 @@ scanl1 f = \t -> snd (mapAccumL go Nothing t) where
 
 scanl1' :: Traversable t => (a -> a -> a) -> t a -> t a
 scanl1' f = \t -> snd (mapAccumL go Nothing t) where
-  go a b = (maybe id seq) a (let c = (maybe id f) a b in (Just c, c))
+  go a b = let c = (maybe id f) a b in seq c (Just c, c)
 
 prescanr :: Traversable t => (a -> b -> b) -> b -> t a -> t b
 prescanr f = snd ... mapAccumR go where
