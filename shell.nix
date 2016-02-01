@@ -1,4 +1,11 @@
 with (import <nixpkgs> {});
+let
+  inherit (pkgs.haskell) lib;
+  haskellPackages = pkgs.haskellPackages.override {
+    overrides = self: super: {
+      vector = (pkgs.ttuegel or super).vector;
+    };
+  };
+in
 with haskellPackages;
-let inherit (haskell) lib; in
 lib.addExtraLibraries (callPackage ./. {}) [ criterion ]
