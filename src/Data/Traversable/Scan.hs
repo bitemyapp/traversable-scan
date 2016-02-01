@@ -63,7 +63,7 @@ instance Monad (StateL s) where
 -- a final value of this accumulator together with the new structure.
 mapAccumL :: Traversable t => (a -> b -> (a, c)) -> a -> t b -> (a, t c)
 {-# INLINE mapAccumL #-}
-mapAccumL f = \s t -> runStateL (traverse (\a -> StateL (\s' -> f s' a)) t) s
+mapAccumL f = \s t -> runStateL (mapM (\a -> StateL (\s' -> f s' a)) t) s
 
 -- * Prefix sums (scans)
 
